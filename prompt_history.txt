@@ -1,0 +1,25 @@
+Prompt History for Stronghold Quest (Feb 2025)
+
+[Grok 3] "Hmm, how about stronghold quest related title for the payment link, stronghold quest optional contribution or something..."
+- Started with payment link title ideas, evolved into full game design with optional contribution section.
+
+[Grok 3] "Dont we want it to stay on page 12, here's the link: https://pay.zaprite.com/pl_4LxYdtCRsZ"
+- Adjusted PDF layout to keep everything on Page 12, integrated Zaprite payment link.
+
+[Grok 3] "Hmm I like it, but with page 12, with the point tracker thing, it's not THAT good..."
+- Refined Score Tracker layout, shifted from points to card collection mechanic.
+
+[Grok 3] "isnt there a qr code for the payment link, and the zoseco email/phone could also be included..."
+- Added QR codes for payment and Discord links, included email/phone across pages.
+
+[Grok 3] "GROK, the pdf download is 'untitled' we should really have it titled as Stronghold Quest: A Pro-Life Card Game from Zoseco"
+- Fixed PDF metadata title to "Stronghold Quest: A Pro-Life Card Game from Zoseco."
+
+[Claude Sonnet 3.5] "turn this into a better image generation prompt for ai, i dont mind if the text isnt included: 'Generate a 1200x630px image of a simple fortress silhouette in Royal Turquoise (#00918b) on a white background, with ‘Stronghold Quest’ in bold white Helvetica text centered.'"
+- Improved an initial image prompt for AI generation, focusing on fortress design flexibility.
+
+[Grok 2] "Generate a 1200x630px image of a simple fortress silhouette in Royal Turquoise (#00918b) on a white background, with ‘Stronghold Quest’ in bold white Helvetica text centered."
+- Initial attempt at generating the Royal Turquoise fortress image with text.
+
+[Grok 2] "Generate 'A minimalist, geometric 4pillar fortress silhouette in rich turquoise blue-green, featuring clean angular towers, crenellated walls, and strong architectural lines against a pure white background. The fortress design is elegant and iconic, with simple geometric shapes creating a balanced and memorable composition. Professional architectural illustration style with crisp edges and precise details.' with ‘Stronghold Quest’ in bold white Helvetica text centered."
+- Refined fortress image prompt with detailed design specs, used for final `stronghold_quest_castle.jpg`.
