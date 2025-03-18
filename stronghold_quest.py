@@ -24,7 +24,7 @@ PAGE_WIDTH, PAGE_HEIGHT = letter
 # Define Royal Turquoise color (#00918b)
 royal_turquoise = Color(0, 0.569, 0.545)
 
-# Card content
+# Card content (unchanged)
 pillar_cards = [
     ("Purity Pillar", "Your mission: Eliminate corruption to defend life. Draw Challenge Cards to collect them."),
     ("Protection Pillar", "Your mission: Shield the vulnerable from threats. Draw Challenge Cards to collect them."),
@@ -86,8 +86,8 @@ def wrap_text(text, width, font, font_size, c):
         lines.append(" ".join(current_line))
     return lines
 
-def draw_card(c, x, y, title, text):
-    """Draw a single card with centered text, larger fonts, and Royal Turquoise border."""
+def draw_card(c, x, y, title, text, raise_text=False):
+    """Draw a single card with centered text, larger fonts, and Royal Turquoise border. Adjust text position based on card type."""
     # Card border in Royal Turquoise
     c.setStrokeColor(royal_turquoise)
     c.setLineWidth(2)
@@ -99,12 +99,18 @@ def draw_card(c, x, y, title, text):
     title_width = c.stringWidth(title, FONT_NAME, 14)
     c.drawString(x + (CARD_WIDTH - title_width) / 2, y + CARD_HEIGHT - 25, title)
     
-    # Body text: Centered, 12pt, raised higher
+    # Body text: Centered, 12pt
     c.setFont(FONT_NAME, 12)
     c.setFillColorRGB(0, 0, 0)
     wrapped_lines = wrap_text(text, CARD_WIDTH - 20, FONT_NAME, 12, c)
     text_height = len(wrapped_lines) * 15
-    start_y = y + CARD_HEIGHT - 40 - (text_height / 2)  # Raised text position
+    
+    # Adjust start_y: raise slightly for Pillar and Threat Cards
+    if raise_text:
+        start_y = y + (CARD_HEIGHT - text_height) / 2 + 15  # Raised slightly (10pt from original center)
+    else:
+        start_y = y + (CARD_HEIGHT - text_height) / 2 + 5   # Original positioning for Challenge Cards
+    
     for i, line in enumerate(wrapped_lines[:4]):  # Limit to 4 lines
         line_width = c.stringWidth(line, FONT_NAME, 12)
         c.drawString(x + (CARD_WIDTH - line_width) / 2, start_y - i * 15, line)
@@ -144,11 +150,9 @@ def draw_footer(c):
     qr_file_discord = create_qr_code("https://discord.com/invite/zZhtw9WVNv")
     c.drawImage(qr_file_discord, discord_x, qr_y, 1 * inch, 1 * inch)
     os.remove(qr_file_discord)
-    c.setFont(FONT_NAME, 10)
+    c.setFont(FONT_NAME, 14)
     c.setFillColor(royal_turquoise)
     c.drawCentredString(discord_x + 0.5 * inch, qr_y + 1.1 * inch, "Join Discord")
-    c.setFont(FONT_NAME, 8)
-    c.setFillColorRGB(0, 0, 0)
     c.drawCentredString(discord_x + 0.5 * inch, qr_y - 0.1 * inch, "Connect with the community")
 
     qr_file_support = create_qr_code("https://pay.zaprite.com/pl_4LxYdtCRsZ")
@@ -157,8 +161,6 @@ def draw_footer(c):
     c.setFont(FONT_NAME, 10)
     c.setFillColor(royal_turquoise)
     c.drawCentredString(support_x + 0.5 * inch, qr_y + 1.1 * inch, "Support the Mission")
-    c.setFont(FONT_NAME, 8)
-    c.setFillColorRGB(0, 0, 0)
     c.drawCentredString(support_x + 0.5 * inch, qr_y - 0.1 * inch, "Help fund the fight for life")
 
 def create_pdf():
@@ -166,7 +168,7 @@ def create_pdf():
     c = canvas.Canvas("stronghold_quest.pdf", pagesize=letter)
     c.setTitle("Stronghold Quest: A Pro-Life Card Game from Zoseco")
     c.setAuthor("Zoseco Team")
-    c.setSubject("Version 1.1 - Upgraded Edition")
+    c.setSubject("Version 0.2")
     
     # Page 1: Cover
     c.setFont(FONT_NAME, 24)
@@ -175,7 +177,7 @@ def create_pdf():
     c.setFont(FONT_NAME, 14)
     c.drawCentredString(PAGE_WIDTH / 2, PAGE_HEIGHT / 2, "A Zoseco Challenge to Defend Innocent Life")
     c.setFont(FONT_NAME, 10)
-    c.drawCentredString(PAGE_WIDTH / 2, PAGE_HEIGHT / 2 - 20, "Version 1.1")
+    c.drawCentredString(PAGE_WIDTH / 2, PAGE_HEIGHT / 2 - 20, "Version 0.2")
     draw_footer(c)
     c.showPage()
 
@@ -204,33 +206,33 @@ def create_pdf():
     draw_footer(c)
     c.showPage()
 
-    # Page 3: Pillar Cards
+    # Page 3: Pillar Cards (raised text)
     for i, (title, text) in enumerate(pillar_cards):
         x = (i % 2) * (CARD_WIDTH + 20) + 1.75 * inch
         y = PAGE_HEIGHT - ((i // 2) + 1) * (CARD_HEIGHT + 20) - 1 * inch
-        draw_card(c, x, y, title, text)
+        draw_card(c, x, y, title, text, raise_text=True)  # Raise text slightly
     draw_footer(c)
     c.showPage()
 
-    # Pages 4-8: Challenge Cards
+    # Pages 4-8: Challenge Cards (original positioning)
     for i, (pillar, text) in enumerate(challenge_cards):
         if i % 4 == 0 and i > 0:
             c.showPage()
             draw_footer(c)
         x = (i % 2) * (CARD_WIDTH + 20) + 1.75 * inch
         y = PAGE_HEIGHT - ((i % 4 // 2) + 1) * (CARD_HEIGHT + 20) - 1 * inch
-        draw_card(c, x, y, f"{pillar} Challenge", text)
+        draw_card(c, x, y, f"{pillar} Challenge", text, raise_text=False)  # Original positioning
     c.showPage()
     draw_footer(c)
 
-    # Pages 9-11: Threat Cards
+    # Pages 9-11: Threat Cards (raised text)
     for i, (type, text) in enumerate(threat_cards):
         if i % 4 == 0 and i > 0:
             c.showPage()
             draw_footer(c)
         x = (i % 2) * (CARD_WIDTH + 20) + 1.75 * inch
         y = PAGE_HEIGHT - ((i % 4 // 2) + 1) * (CARD_HEIGHT + 20) - 1 * inch
-        draw_card(c, x, y, type, text)
+        draw_card(c, x, y, type, text, raise_text=True)  # Raise text slightly
     c.showPage()
     draw_footer(c)
 
