@@ -2,9 +2,20 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
 from reportlab.lib.colors import Color
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 import qrcode
 import os
 import tempfile
+
+# Register Century Schoolbook font (adjust path if necessary)
+try:
+    pdfmetrics.registerFont(TTFont("CenturySchoolbook", "C:/Windows/Fonts/CENSCBK.TTF"))
+    FONT_NAME = "CenturySchoolbook"
+    print("Century Schoolbook font registered successfully.")
+except Exception as e:
+    print(f"Failed to register Century Schoolbook: {e}. Falling back to Helvetica.")
+    FONT_NAME = "Helvetica"
 
 # Card dimensions (2.5" x 3.5")
 CARD_WIDTH, CARD_HEIGHT = 2.5 * inch, 3.5 * inch
@@ -13,7 +24,7 @@ PAGE_WIDTH, PAGE_HEIGHT = letter
 # Define Royal Turquoise color (#00918b)
 royal_turquoise = Color(0, 0.569, 0.545)
 
-# Card content (keeping it minimal for brevity)
+# Card content (all original cards included)
 pillar_cards = [
     ("Purity Pillar", "Your mission: Eliminate corruption to defend life. Draw Challenge Cards to collect them."),
     ("Protection Pillar", "Your mission: Shield the vulnerable from threats. Draw Challenge Cards to collect them."),
@@ -56,6 +67,7 @@ threat_cards = [
 ]
 
 def wrap_text(text, width, font, font_size, c):
+    """Wrap text to fit within a specified width."""
     c.setFont(font, font_size)
     words = text.split()
     lines = []
@@ -75,16 +87,30 @@ def wrap_text(text, width, font, font_size, c):
     return lines
 
 def draw_card(c, x, y, title, text):
-    c.setFont("Helvetica-Bold", 12)
-    c.setFillColorRGB(0, 0, 0)
-    c.drawString(x + 10, y + CARD_HEIGHT - 20, title)
-    c.setFont("Helvetica", 10)
-    wrapped_lines = wrap_text(text, CARD_WIDTH - 20, "Helvetica", 10, c)
-    for i, line in enumerate(wrapped_lines[:4]):
-        c.drawString(x + 10, y + CARD_HEIGHT - 40 - i * 12, line)
+    """Draw a single card with enhanced design: centered text, larger fonts, and Royal Turquoise border."""
+    # Card border in Royal Turquoise
+    c.setStrokeColor(royal_turquoise)
+    c.setLineWidth(2)
     c.rect(x, y, CARD_WIDTH, CARD_HEIGHT)
+    
+    # Title: Larger, centered, Century Schoolbook
+    c.setFont(FONT_NAME, 14)
+    c.setFillColor(royal_turquoise)
+    title_width = c.stringWidth(title, FONT_NAME, 14)
+    c.drawString(x + (CARD_WIDTH - title_width) / 2, y + CARD_HEIGHT - 25, title)
+    
+    # Body text: Larger, Century Schoolbook, centered, wrapped
+    c.setFont(FONT_NAME, 12)
+    c.setFillColorRGB(0, 0, 0)
+    wrapped_lines = wrap_text(text, CARD_WIDTH - 20, FONT_NAME, 12, c)
+    text_height = len(wrapped_lines) * 15
+    start_y = y + (CARD_HEIGHT - text_height) / 2 + 5  # Center vertically
+    for i, line in enumerate(wrapped_lines[:4]):  # Limit to 4 lines
+        line_width = c.stringWidth(line, FONT_NAME, 12)
+        c.drawString(x + (CARD_WIDTH - line_width) / 2, start_y - i * 15, line)
 
 def create_qr_code(url):
+    """Generate a QR code image from a URL and save it to a temporary file."""
     qr = qrcode.QRCode(version=1, box_size=10, border=1)
     qr.add_data(url)
     qr.make(fit=True)
@@ -94,19 +120,23 @@ def create_qr_code(url):
     return temp_file.name
 
 def create_pdf():
+    """Generate the full Stronghold Quest PDF with enhanced design and metadata."""
     c = canvas.Canvas("stronghold_quest.pdf", pagesize=letter)
-    # Set PDF metadata title
+    # Enhanced metadata
     c.setTitle("Stronghold Quest: A Pro-Life Card Game from Zoseco")
+    c.setAuthor("Zoseco Team")
+    c.setSubject("Version 1.1 - Upgraded Edition")
     
     # Page 1: Cover
-    c.setFont("Helvetica-Bold", 20)
+    c.setFont(FONT_NAME, 24)
     c.setFillColor(royal_turquoise)
-    c.drawCentredString(PAGE_WIDTH/2, PAGE_HEIGHT/2, "Stronghold Quest: A Card Game")
-    c.setFont("Helvetica", 12)
-    c.drawCentredString(PAGE_WIDTH/2, PAGE_HEIGHT/2 - 30, "A Zoseco Challenge to Defend Innocent Life")
-    c.setFont("Helvetica-Bold", 11)
-    c.drawCentredString(PAGE_WIDTH/2, 1.8 * inch, "Fortify the Stronghold – Get in Touch!")
-    c.setFont("Helvetica", 9)
+    c.drawCentredString(PAGE_WIDTH / 2, PAGE_HEIGHT / 2 + 30, "Stronghold Quest")
+    c.setFont(FONT_NAME, 14)
+    c.drawCentredString(PAGE_WIDTH / 2, PAGE_HEIGHT / 2, "A Zoseco Challenge to Defend Innocent Life")
+    # Contact section
+    c.setFont(FONT_NAME, 12)
+    c.drawCentredString(PAGE_WIDTH / 2, 2.2 * inch, "Fortify the Stronghold – Get in Touch!")
+    c.setFont(FONT_NAME, 10)
     c.setFillColorRGB(0, 0, 0)
     contact_text = [
         "Text/Voicemail: (219) 488-2689",
@@ -114,20 +144,20 @@ def create_pdf():
         "Join our Discord:",
         "https://discord.com/invite/zZhtw9WVNv"
     ]
-    y_pos = 1.6 * inch
+    y_pos = 2 * inch
     for line in contact_text:
-        c.drawCentredString(PAGE_WIDTH/2, y_pos, line)
+        c.drawCentredString(PAGE_WIDTH / 2, y_pos, line)
         y_pos -= 18
     qr_file = create_qr_code("https://discord.com/invite/zZhtw9WVNv")
-    c.drawImage(qr_file, 5.5 * inch, 0.8 * inch, 1 * inch, 1 * inch)
+    c.drawImage(qr_file, 5.5 * inch, 1 * inch, 1 * inch, 1 * inch)
     os.remove(qr_file)
     c.showPage()
 
     # Page 2: Instructions
-    c.setFont("Helvetica-Bold", 16)
+    c.setFont(FONT_NAME, 18)
     c.setFillColor(royal_turquoise)
     c.drawString(1 * inch, PAGE_HEIGHT - 1 * inch, "Stronghold Quest: How to Play")
-    c.setFont("Helvetica", 11)
+    c.setFont(FONT_NAME, 12)
     c.setFillColorRGB(0, 0, 0)
     instructions = [
         "Welcome to Stronghold Quest, a card game from Zoseco to fortify your commitment to defending innocent life! Inspired by our four pillars—Purity, Protection, Peace, and Productivity—you’ll draw cards, face challenges, and overcome threats to build a stronghold for life. Play solo or with your family to collect 7 Challenge Cards (or 12 for a greater victory) and claim your “Defender of Life” badge.",
@@ -140,15 +170,15 @@ def create_pdf():
     ]
     y_pos = PAGE_HEIGHT - 1.5 * inch
     for line in instructions:
-        wrapped_lines = wrap_text(line, PAGE_WIDTH - 2 * inch, "Helvetica", 11, c)
+        wrapped_lines = wrap_text(line, PAGE_WIDTH - 2 * inch, FONT_NAME, 12, c)
         for wrapped_line in wrapped_lines:
             c.drawString(1 * inch, y_pos, wrapped_line)
             y_pos -= 15
         y_pos -= 5
-    c.setFont("Helvetica-Bold", 11)
+    c.setFont(FONT_NAME, 12)
     c.setFillColor(royal_turquoise)
-    c.drawCentredString(PAGE_WIDTH/2, 1.8 * inch, "Fortify the Stronghold – Get in Touch!")
-    c.setFont("Helvetica", 9)
+    c.drawCentredString(PAGE_WIDTH / 2, 2 * inch, "Fortify the Stronghold – Get in Touch!")
+    c.setFont(FONT_NAME, 10)
     c.setFillColorRGB(0, 0, 0)
     contact_text = [
         "Text/Voicemail: (219) 488-2689",
@@ -156,12 +186,12 @@ def create_pdf():
         "Join our Discord:",
         "https://discord.com/invite/zZhtw9WVNv"
     ]
-    y_pos = 1.6 * inch
+    y_pos = 1.8 * inch
     for line in contact_text:
-        c.drawCentredString(PAGE_WIDTH/2, y_pos, line)
+        c.drawCentredString(PAGE_WIDTH / 2, y_pos, line)
         y_pos -= 18
     qr_file = create_qr_code("https://discord.com/invite/zZhtw9WVNv")
-    c.drawImage(qr_file, 5.5 * inch, 0.8 * inch, 1 * inch, 1 * inch)
+    c.drawImage(qr_file, 5.5 * inch, 1 * inch, 1 * inch, 1 * inch)
     os.remove(qr_file)
     c.showPage()
 
@@ -193,19 +223,19 @@ def create_pdf():
     c.showPage()
 
     # Page 12: Score Tracker, Badge, Contribution, Join Us
-    c.setFont("Helvetica-Bold", 12)
+    c.setFont(FONT_NAME, 14)
     c.setFillColor(royal_turquoise)
-    c.drawCentredString(PAGE_WIDTH/2, PAGE_HEIGHT - 1 * inch, "Score Tracker")
-    c.setFont("Helvetica", 10)
+    c.drawCentredString(PAGE_WIDTH / 2, PAGE_HEIGHT - 1 * inch, "Score Tracker")
+    c.setFont(FONT_NAME, 12)
     c.setFillColorRGB(0, 0, 0)
-    c.drawCentredString(PAGE_WIDTH/2, PAGE_HEIGHT - 1.4 * inch, "Goal: Collect 7 Cards (or 12)")
+    c.drawCentredString(PAGE_WIDTH / 2, PAGE_HEIGHT - 1.4 * inch, "Goal: Collect 7 Cards (or 12)")
     c.rect(2 * inch, PAGE_HEIGHT - 2 * inch, 4.5 * inch, 0.82 * inch)
-    c.setFont("Helvetica", 9)
+    c.setFont(FONT_NAME, 10)
     c.drawCentredString(3.125 * inch, PAGE_HEIGHT - 1.59 * inch, "Purity: ____")
     c.drawCentredString(3.125 * inch, PAGE_HEIGHT - 1.74 * inch, "Protection: ____")
     c.drawCentredString(5.375 * inch, PAGE_HEIGHT - 1.59 * inch, "Peace: ____")
     c.drawCentredString(5.375 * inch, PAGE_HEIGHT - 1.74 * inch, "Productivity: ____")
-    c.drawCentredString(PAGE_WIDTH/2, PAGE_HEIGHT - 2.45 * inch, "Total Cards: ____ / 7 (or 12)")
+    c.drawCentredString(PAGE_WIDTH / 2, PAGE_HEIGHT - 2.45 * inch, "Total Cards: ____ / 7 (or 12)")
     c.line(1 * inch, PAGE_HEIGHT - 2.6 * inch, PAGE_WIDTH - 1 * inch, PAGE_HEIGHT - 2.6 * inch)
 
     badge_width, badge_height = 3.5 * inch, 1.5 * inch
@@ -216,17 +246,17 @@ def create_pdf():
     c.rect(badge_x + badge_width + 10, badge_y + badge_height - pillar_size, pillar_size, pillar_size)
     c.rect(badge_x - pillar_size - 10, badge_y, pillar_size, pillar_size)
     c.rect(badge_x + badge_width + 10, badge_y, pillar_size, pillar_size)
-    c.setFont("Helvetica-Bold", 14)
+    c.setFont(FONT_NAME, 16)
     c.setFillColor(royal_turquoise)
-    c.drawCentredString(PAGE_WIDTH/2, badge_y + badge_height - 0.4 * inch, "Defender of Life Badge")
-    c.setFont("Helvetica", 10)
-    c.drawCentredString(PAGE_WIDTH/2, badge_y + badge_height - 0.7 * inch, "Awarded to: ________________")
-    c.drawCentredString(PAGE_WIDTH/2, badge_y + badge_height - 1.0 * inch, "Victory Earned!")
+    c.drawCentredString(PAGE_WIDTH / 2, badge_y + badge_height - 0.4 * inch, "Defender of Life Badge")
+    c.setFont(FONT_NAME, 12)
+    c.drawCentredString(PAGE_WIDTH / 2, badge_y + badge_height - 0.7 * inch, "Awarded to: ________________")
+    c.drawCentredString(PAGE_WIDTH / 2, badge_y + badge_height - 1.0 * inch, "Victory Earned!")
 
-    c.setFont("Helvetica-Bold", 11)
+    c.setFont(FONT_NAME, 12)
     c.setFillColor(royal_turquoise)
-    c.drawCentredString(PAGE_WIDTH/2, 4.2 * inch, "Stronghold Quest Optional Contribution")
-    c.setFont("Helvetica", 9)
+    c.drawCentredString(PAGE_WIDTH / 2, 4.2 * inch, "Stronghold Quest Optional Contribution")
+    c.setFont(FONT_NAME, 10)
     c.setFillColorRGB(0, 0, 0)
     contribution_text = [
         "Keep building! Contribute 50¢, $500, or",
@@ -236,16 +266,16 @@ def create_pdf():
     ]
     y_pos = 4 * inch
     for line in contribution_text:
-        c.drawCentredString(PAGE_WIDTH/2, y_pos, line)
+        c.drawCentredString(PAGE_WIDTH / 2, y_pos, line)
         y_pos -= 18
     qr_file = create_qr_code("https://pay.zaprite.com/pl_4LxYdtCRsZ")
     c.drawImage(qr_file, 5.5 * inch, 3.2 * inch, 1 * inch, 1 * inch)
     os.remove(qr_file)
 
-    c.setFont("Helvetica-Bold", 11)
+    c.setFont(FONT_NAME, 12)
     c.setFillColor(royal_turquoise)
-    c.drawCentredString(PAGE_WIDTH/2, 1.8 * inch, "Fortify the Stronghold – Get in Touch!")
-    c.setFont("Helvetica", 9)
+    c.drawCentredString(PAGE_WIDTH / 2, 1.8 * inch, "Fortify the Stronghold – Get in Touch!")
+    c.setFont(FONT_NAME, 10)
     c.setFillColorRGB(0, 0, 0)
     join_text = [
         "Text/Voicemail: (219) 488-2689",
@@ -255,7 +285,7 @@ def create_pdf():
     ]
     y_pos = 1.6 * inch
     for line in join_text:
-        c.drawCentredString(PAGE_WIDTH/2, y_pos, line)
+        c.drawCentredString(PAGE_WIDTH / 2, y_pos, line)
         y_pos -= 18
     qr_file = create_qr_code("https://discord.com/invite/zZhtw9WVNv")
     c.drawImage(qr_file, 5.75 * inch, 0.8 * inch, 1 * inch, 1 * inch)
