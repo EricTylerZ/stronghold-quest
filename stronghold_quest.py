@@ -24,7 +24,7 @@ PAGE_WIDTH, PAGE_HEIGHT = letter
 # Define Royal Turquoise color (#00918b)
 royal_turquoise = Color(0, 0.569, 0.545)
 
-# Card content (all original cards included)
+# Card content
 pillar_cards = [
     ("Purity Pillar", "Your mission: Eliminate corruption to defend life. Draw Challenge Cards to collect them."),
     ("Protection Pillar", "Your mission: Shield the vulnerable from threats. Draw Challenge Cards to collect them."),
@@ -99,12 +99,12 @@ def draw_card(c, x, y, title, text):
     title_width = c.stringWidth(title, FONT_NAME, 14)
     c.drawString(x + (CARD_WIDTH - title_width) / 2, y + CARD_HEIGHT - 25, title)
     
-    # Body text: Centered, 12pt, vertically centered
+    # Body text: Centered, 12pt, raised higher
     c.setFont(FONT_NAME, 12)
     c.setFillColorRGB(0, 0, 0)
     wrapped_lines = wrap_text(text, CARD_WIDTH - 20, FONT_NAME, 12, c)
     text_height = len(wrapped_lines) * 15
-    start_y = y + (CARD_HEIGHT - text_height) / 2 + 5  # Center vertically
+    start_y = y + CARD_HEIGHT - 40 - (text_height / 2)  # Raised text position
     for i, line in enumerate(wrapped_lines[:4]):  # Limit to 4 lines
         line_width = c.stringWidth(line, FONT_NAME, 12)
         c.drawString(x + (CARD_WIDTH - line_width) / 2, start_y - i * 15, line)
@@ -120,7 +120,7 @@ def create_qr_code(url):
     return temp_file.name
 
 def draw_footer(c):
-    """Draw a StagQuest-style footer with contact info and QR codes."""
+    """Draw a clean, StagQuest-style footer with contact info and QR codes."""
     # Contact info
     c.setFont(FONT_NAME, 10)
     c.setFillColor(royal_turquoise)
@@ -265,43 +265,7 @@ def create_pdf():
     c.drawCentredString(PAGE_WIDTH / 2, badge_y + badge_height - 0.7 * inch, "Awarded to: ________________")
     c.drawCentredString(PAGE_WIDTH / 2, badge_y + badge_height - 1.0 * inch, "Victory Earned!")
 
-    c.setFont(FONT_NAME, 12)
-    c.setFillColor(royal_turquoise)
-    c.drawCentredString(PAGE_WIDTH / 2, 4.2 * inch, "Stronghold Quest Optional Contribution")
-    c.setFont(FONT_NAME, 10)
-    c.setFillColorRGB(0, 0, 0)
-    contribution_text = [
-        "Keep building! Contribute 50¢, $500, or",
-        "anything to Zoseco: A Stronghold for",
-        "Pro-Life Victory. Not tax-deductible.",
-        "https://pay.zaprite.com/pl_4LxYdtCRsZ"
-    ]
-    y_pos = 4 * inch
-    for line in contribution_text:
-        c.drawCentredString(PAGE_WIDTH / 2, y_pos, line)
-        y_pos -= 18
-    qr_file = create_qr_code("https://pay.zaprite.com/pl_4LxYdtCRsZ")
-    c.drawImage(qr_file, 5.5 * inch, 3.2 * inch, 1 * inch, 1 * inch)
-    os.remove(qr_file)
-
-    c.setFont(FONT_NAME, 12)
-    c.setFillColor(royal_turquoise)
-    c.drawCentredString(PAGE_WIDTH / 2, 1.8 * inch, "Fortify the Stronghold – Get in Touch!")
-    c.setFont(FONT_NAME, 10)
-    c.setFillColorRGB(0, 0, 0)
-    join_text = [
-        "Text/Voicemail: (219) 488-2689",
-        "Email: info@zoseco.com",
-        "Join our Discord:",
-        "https://discord.com/invite/zZhtw9WVNv"
-    ]
-    y_pos = 1.6 * inch
-    for line in join_text:
-        c.drawCentredString(PAGE_WIDTH / 2, y_pos, line)
-        y_pos -= 18
-    qr_file = create_qr_code("https://discord.com/invite/zZhtw9WVNv")
-    c.drawImage(qr_file, 5.75 * inch, 0.8 * inch, 1 * inch, 1 * inch)
-    os.remove(qr_file)
+    draw_footer(c)
     c.showPage()
 
     c.save()
