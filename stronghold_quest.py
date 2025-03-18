@@ -150,7 +150,7 @@ def draw_footer(c, include_qr=False):
         for i, (line, line_width) in enumerate(wrapped_desc[:2]):
             c.drawString(support_x + (1 * inch - line_width) / 2, desc_y - i * 10, line)
 
-def draw_card(c, x, y, title, text, raise_text=False):
+def draw_card(c, x, y, title, text, card_type):
     """Draw a single card with centered text and Royal Turquoise border."""
     c.setStrokeColor(royal_turquoise)
     c.setLineWidth(2)
@@ -166,9 +166,13 @@ def draw_card(c, x, y, title, text, raise_text=False):
     wrapped_lines = wrap_text(text, CARD_WIDTH - 20, FONT_NAME, 12, c)
     text_height = len(wrapped_lines) * 15
     
-    if raise_text:
-        start_y = y + (CARD_HEIGHT - text_height) / 2 + 15
+    # Calculate start_y for proper centering
+    if card_type in ["Pillar", "Threat"]:
+        # Available space: from y + 10 to y + CARD_HEIGHT - 40
+        available_height = CARD_HEIGHT - 50
+        start_y = y + 10 + (available_height - text_height) / 2 + ((len(wrapped_lines) - 1) * 15) / 2
     else:
+        # Original positioning for Challenge Cards
         start_y = y + (CARD_HEIGHT - text_height) / 2 + 5
     
     for i, line in enumerate(wrapped_lines[:4]):
@@ -222,31 +226,31 @@ def create_pdf():
     for i, (title, text) in enumerate(pillar_cards):
         x = (i % 2) * (CARD_WIDTH + 20) + 1.75 * inch
         y = PAGE_HEIGHT - ((i // 2) + 1) * (CARD_HEIGHT + 20) - 1 * inch
-        draw_card(c, x, y, title, text, raise_text=True)
-    draw_footer(c)  # No QR codes
+        draw_card(c, x, y, title, text, "Pillar")
+    draw_footer(c)
     c.showPage()
 
     # Pages 4-8: Challenge Cards without QR codes
     for i, (pillar, text) in enumerate(challenge_cards):
         if i % 4 == 0 and i > 0:
             c.showPage()
-            draw_footer(c)  # No QR codes
+            draw_footer(c)
         x = (i % 2) * (CARD_WIDTH + 20) + 1.75 * inch
         y = PAGE_HEIGHT - ((i % 4 // 2) + 1) * (CARD_HEIGHT + 20) - 1 * inch
-        draw_card(c, x, y, f"{pillar} Challenge", text, raise_text=False)
+        draw_card(c, x, y, f"{pillar} Challenge", text, "Challenge")
     c.showPage()
-    draw_footer(c)  # No QR codes
+    draw_footer(c)
 
     # Pages 9-11: Threat Cards without QR codes
     for i, (type, text) in enumerate(threat_cards):
         if i % 4 == 0 and i > 0:
             c.showPage()
-            draw_footer(c)  # No QR codes
+            draw_footer(c)
         x = (i % 2) * (CARD_WIDTH + 20) + 1.75 * inch
         y = PAGE_HEIGHT - ((i % 4 // 2) + 1) * (CARD_HEIGHT + 20) - 1 * inch
-        draw_card(c, x, y, type, text, raise_text=True)
+        draw_card(c, x, y, type, text, "Threat")
     c.showPage()
-    draw_footer(c)  # No QR codes
+    draw_footer(c)
 
     # Page 12: Score Tracker and Badge with QR codes
     c.setFont(FONT_NAME, 14)
