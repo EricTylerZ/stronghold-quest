@@ -24,7 +24,7 @@ PAGE_WIDTH, PAGE_HEIGHT = letter
 # Define Royal Turquoise color (#00918b)
 royal_turquoise = Color(0, 0.569, 0.545)
 
-# Card content (unchanged)
+# Card content
 pillar_cards = [
     ("Purity Pillar", "Your mission: Eliminate corruption to defend life. Draw Challenge Cards to collect them."),
     ("Protection Pillar", "Your mission: Shield the vulnerable from threats. Draw Challenge Cards to collect them."),
@@ -101,12 +101,10 @@ def create_qr_code(url):
 def draw_footer(c, include_qr=False):
     """Draw a footer with optional QR codes, 'Fortify the Stronghold' text, and contact details only when QR codes are present."""
     if include_qr:
-        # Header text
         c.setFont(FONT_NAME, 10)
         c.setFillColor(royal_turquoise)
         c.drawCentredString(PAGE_WIDTH / 2, 1.2 * inch, "Fortify the Stronghold – Get in Touch!")
         
-        # Contact details
         c.setFont(FONT_NAME, 9)
         c.setFillColorRGB(0, 0, 0)
         contact_text = [
@@ -119,7 +117,6 @@ def draw_footer(c, include_qr=False):
             c.drawCentredString(PAGE_WIDTH / 2, y_pos, line)
             y_pos -= 12
 
-        # QR codes
         discord_x = 1.5 * inch
         support_x = PAGE_WIDTH - 1.5 * inch - 1 * inch
         qr_y = 0.5 * inch
@@ -153,36 +150,28 @@ def draw_footer(c, include_qr=False):
             c.drawString(support_x + (1 * inch - line_width) / 2, desc_y - i * 10, line)
 
 def draw_card(c, x, y, title, text, card_type):
-    """Draw a single card with centered text and Royal Turquoise border, adjusted spacing for Pillar and Threat Cards."""
+    """Draw a single card with title at top and body text 50% down from title."""
     c.setStrokeColor(royal_turquoise)
     c.setLineWidth(2)
     c.rect(x, y, CARD_WIDTH, CARD_HEIGHT)
     
+    # Title at top
     c.setFont(FONT_NAME, 14)
     c.setFillColor(royal_turquoise)
     title_width = c.stringWidth(title, FONT_NAME, 14)
     c.drawString(x + (CARD_WIDTH - title_width) / 2, y + CARD_HEIGHT - 25, title)
     
+    # Body text 50% down from title
     c.setFont(FONT_NAME, 12)
     c.setFillColorRGB(0, 0, 0)
     wrapped_lines = wrap_text(text, CARD_WIDTH - 20, FONT_NAME, 12, c)
-    text_height = len(wrapped_lines) * 15
-    
-    if card_type in ["Pillar", "Threat"]:
-        # Adjusted spacing: more space below title
-        start_y = y + CARD_HEIGHT - 50  # Increased gap to 25 points below title
-        for i, line in enumerate(wrapped_lines):
-            line_width = c.stringWidth(line, FONT_NAME, 12)
-            c.drawString(x + (CARD_WIDTH - line_width) / 2, start_y - i * 15, line)
-    else:
-        # Original positioning for Challenge Cards
-        start_y = y + (CARD_HEIGHT - text_height) / 2 + 5
-        for i, line in enumerate(wrapped_lines):
-            line_width = c.stringWidth(line, FONT_NAME, 12)
-            c.drawString(x + (CARD_WIDTH - line_width) / 2, start_y - i * 15, line)
+    start_y = y + 127  # ~50% down from title baseline (y + 227 - 100)
+    for i, line in enumerate(wrapped_lines[:4]):
+        line_width = c.stringWidth(line, FONT_NAME, 12)
+        c.drawString(x + (CARD_WIDTH - line_width) / 2, start_y - i * 15, line)
 
 def create_pdf():
-    """Generate the full Stronghold Quest PDF."""
+    """Generate the full Stronghold Quest PDF with centered instructions."""
     c = canvas.Canvas("stronghold_quest.pdf", pagesize=letter)
     c.setTitle("Stronghold Quest: A Pro-Life Card Game from Zoseco")
     c.setAuthor("Zoseco Team")
@@ -199,10 +188,10 @@ def create_pdf():
     draw_footer(c, include_qr=True)
     c.showPage()
 
-    # Page 2: Instructions with QR codes
+    # Page 2: Instructions with QR codes, centered
     c.setFont(FONT_NAME, 18)
     c.setFillColor(royal_turquoise)
-    c.drawString(1 * inch, PAGE_HEIGHT - 1 * inch, "Stronghold Quest: How to Play")
+    c.drawCentredString(PAGE_WIDTH / 2, PAGE_HEIGHT - 1 * inch, "Stronghold Quest: How to Play")
     c.setFont(FONT_NAME, 12)
     c.setFillColorRGB(0, 0, 0)
     instructions = [
@@ -216,9 +205,9 @@ def create_pdf():
     ]
     y_pos = PAGE_HEIGHT - 1.5 * inch
     for line in instructions:
-        wrapped_lines = wrap_text(line, PAGE_WIDTH - 2 * inch, FONT_NAME, 12, c)
-        for wrapped_line in wrapped_lines:
-            c.drawString(1 * inch, y_pos, wrapped_line)
+        wrapped_lines = wrap_text(line, PAGE_WIDTH - 2 * inch, FONT_NAME, 12, c, centered=True)
+        for line_text, line_width in wrapped_lines:
+            c.drawCentredString(PAGE_WIDTH / 2, y_pos, line_text)
             y_pos -= 15
         y_pos -= 5
     draw_footer(c, include_qr=True)
