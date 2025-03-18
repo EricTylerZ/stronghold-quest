@@ -24,7 +24,7 @@ PAGE_WIDTH, PAGE_HEIGHT = letter
 # Define Royal Turquoise color (#00918b)
 royal_turquoise = Color(0, 0.569, 0.545)
 
-# Card content (unchanged)
+# Card content
 pillar_cards = [
     ("Purity Pillar", "Your mission: Eliminate corruption to defend life. Draw Challenge Cards to collect them."),
     ("Protection Pillar", "Your mission: Shield the vulnerable from threats. Draw Challenge Cards to collect them."),
@@ -66,8 +66,8 @@ threat_cards = [
     ("Threat", "Laziness creeps in. Lose a card unless you list a fun task.")
 ]
 
-def wrap_text(text, width, font, font_size, c):
-    """Wrap text to fit within a specified width, returning a list of lines."""
+def wrap_text(text, width, font, font_size, c, centered=False):
+    """Wrap text to fit within a specified width, optionally centering it."""
     c.setFont(font, font_size)
     words = text.split()
     lines = []
@@ -84,39 +84,12 @@ def wrap_text(text, width, font, font_size, c):
             current_width = word_width
     if current_line:
         lines.append(" ".join(current_line))
+    if centered:
+        return [(line, c.stringWidth(line, font, font_size)) for line in lines]
     return lines
 
-def draw_card(c, x, y, title, text, raise_text=False):
-    """Draw a single card with centered text, larger fonts, and Royal Turquoise border. Adjust text position based on card type."""
-    # Card border in Royal Turquoise
-    c.setStrokeColor(royal_turquoise)
-    c.setLineWidth(2)
-    c.rect(x, y, CARD_WIDTH, CARD_HEIGHT)
-    
-    # Title: Centered, 14pt
-    c.setFont(FONT_NAME, 14)
-    c.setFillColor(royal_turquoise)
-    title_width = c.stringWidth(title, FONT_NAME, 14)
-    c.drawString(x + (CARD_WIDTH - title_width) / 2, y + CARD_HEIGHT - 25, title)
-    
-    # Body text: Centered, 12pt
-    c.setFont(FONT_NAME, 12)
-    c.setFillColorRGB(0, 0, 0)
-    wrapped_lines = wrap_text(text, CARD_WIDTH - 20, FONT_NAME, 12, c)
-    text_height = len(wrapped_lines) * 15
-    
-    # Adjust start_y: raise slightly for Pillar and Threat Cards
-    if raise_text:
-        start_y = y + (CARD_HEIGHT - text_height) / 2 + 15  # Raised slightly (10pt from original center)
-    else:
-        start_y = y + (CARD_HEIGHT - text_height) / 2 + 5   # Original positioning for Challenge Cards
-    
-    for i, line in enumerate(wrapped_lines[:4]):  # Limit to 4 lines
-        line_width = c.stringWidth(line, FONT_NAME, 12)
-        c.drawString(x + (CARD_WIDTH - line_width) / 2, start_y - i * 15, line)
-
 def create_qr_code(url):
-    """Generate a QR code image from a URL and save it to a temporary file."""
+    """Generate a QR code image with black fill color."""
     qr = qrcode.QRCode(version=1, box_size=10, border=1)
     qr.add_data(url)
     qr.make(fit=True)
@@ -125,8 +98,8 @@ def create_qr_code(url):
     img.save(temp_file.name)
     return temp_file.name
 
-def draw_footer(c):
-    """Draw a clean, StagQuest-style footer with contact info and QR codes."""
+def draw_footer(c, include_qr=False):
+    """Draw a StagQuest-style footer with optional QR codes."""
     # Contact info
     c.setFont(FONT_NAME, 10)
     c.setFillColor(royal_turquoise)
@@ -143,45 +116,84 @@ def draw_footer(c):
         c.drawCentredString(PAGE_WIDTH / 2, y_pos, line)
         y_pos -= 12
 
-    # QR codes for Discord and Support
-    discord_x = 1.5 * inch
-    support_x = PAGE_WIDTH - 1.5 * inch - 1 * inch
-    qr_y = 0.5 * inch
-    qr_file_discord = create_qr_code("https://discord.com/invite/zZhtw9WVNv")
-    c.drawImage(qr_file_discord, discord_x, qr_y, 1 * inch, 1 * inch)
-    os.remove(qr_file_discord)
+    if include_qr:
+        # QR codes for Discord and Support
+        discord_x = 1.5 * inch
+        support_x = PAGE_WIDTH - 1.5 * inch - 1 * inch
+        qr_y = 0.5 * inch
+        qr_file_discord = create_qr_code("https://discord.com/invite/zZhtw9WVNv")
+        c.drawImage(qr_file_discord, discord_x, qr_y, 1 * inch, 1 * inch)
+        os.remove(qr_file_discord)
+        c.setFont(FONT_NAME, 14)
+        c.setFillColor(royal_turquoise)
+        label = "Join Discord"
+        label_width = c.stringWidth(label, FONT_NAME, 14)
+        c.drawString(discord_x + (1 * inch - label_width) / 2, qr_y + 1.1 * inch, label)
+        c.setFont(FONT_NAME, 9)
+        desc = "Connect with the community"
+        wrapped_desc = wrap_text(desc, 1 * inch, FONT_NAME, 9, c, centered=True)
+        desc_y = qr_y - 0.1 * inch
+        for i, (line, line_width) in enumerate(wrapped_desc[:2]):
+            c.drawString(discord_x + (1 * inch - line_width) / 2, desc_y - i * 10, line)
+
+        qr_file_support = create_qr_code("https://pay.zaprite.com/pl_4LxYdtCRsZ")
+        c.drawImage(qr_file_support, support_x, qr_y, 1 * inch, 1 * inch)
+        os.remove(qr_file_support)
+        c.setFont(FONT_NAME, 14)
+        label = "Support the Mission"
+        label_width = c.stringWidth(label, FONT_NAME, 14)
+        c.drawString(support_x + (1 * inch - label_width) / 2, qr_y + 1.1 * inch, label)
+        c.setFont(FONT_NAME, 9)
+        desc = "Help fund the fight for life"
+        wrapped_desc = wrap_text(desc, 1 * inch, FONT_NAME, 9, c, centered=True)
+        desc_y = qr_y - 0.1 * inch
+        for i, (line, line_width) in enumerate(wrapped_desc[:2]):
+            c.drawString(support_x + (1 * inch - line_width) / 2, desc_y - i * 10, line)
+
+def draw_card(c, x, y, title, text, raise_text=False):
+    """Draw a single card with centered text and Royal Turquoise border."""
+    c.setStrokeColor(royal_turquoise)
+    c.setLineWidth(2)
+    c.rect(x, y, CARD_WIDTH, CARD_HEIGHT)
+    
     c.setFont(FONT_NAME, 14)
     c.setFillColor(royal_turquoise)
-    c.drawCentredString(discord_x + 0.5 * inch, qr_y + 1.1 * inch, "Join Discord")
-    c.drawCentredString(discord_x + 0.5 * inch, qr_y - 0.1 * inch, "Connect with the community")
-
-    qr_file_support = create_qr_code("https://pay.zaprite.com/pl_4LxYdtCRsZ")
-    c.drawImage(qr_file_support, support_x, qr_y, 1 * inch, 1 * inch)
-    os.remove(qr_file_support)
-    c.setFont(FONT_NAME, 10)
-    c.setFillColor(royal_turquoise)
-    c.drawCentredString(support_x + 0.5 * inch, qr_y + 1.1 * inch, "Support the Mission")
-    c.drawCentredString(support_x + 0.5 * inch, qr_y - 0.1 * inch, "Help fund the fight for life")
+    title_width = c.stringWidth(title, FONT_NAME, 14)
+    c.drawString(x + (CARD_WIDTH - title_width) / 2, y + CARD_HEIGHT - 25, title)
+    
+    c.setFont(FONT_NAME, 12)
+    c.setFillColorRGB(0, 0, 0)
+    wrapped_lines = wrap_text(text, CARD_WIDTH - 20, FONT_NAME, 12, c)
+    text_height = len(wrapped_lines) * 15
+    
+    if raise_text:
+        start_y = y + (CARD_HEIGHT - text_height) / 2 + 15
+    else:
+        start_y = y + (CARD_HEIGHT - text_height) / 2 + 5
+    
+    for i, line in enumerate(wrapped_lines[:4]):
+        line_width = c.stringWidth(line, FONT_NAME, 12)
+        c.drawString(x + (CARD_WIDTH - line_width) / 2, start_y - i * 15, line)
 
 def create_pdf():
-    """Generate the full Stronghold Quest PDF with enhanced design and StagQuest-style footer."""
+    """Generate the full Stronghold Quest PDF."""
     c = canvas.Canvas("stronghold_quest.pdf", pagesize=letter)
     c.setTitle("Stronghold Quest: A Pro-Life Card Game from Zoseco")
     c.setAuthor("Zoseco Team")
-    c.setSubject("Version 0.2")
+    c.setSubject("Version 0.22 - Upgraded Edition")
     
-    # Page 1: Cover
+    # Page 1: Cover with QR codes
     c.setFont(FONT_NAME, 24)
     c.setFillColor(royal_turquoise)
     c.drawCentredString(PAGE_WIDTH / 2, PAGE_HEIGHT / 2 + 30, "Stronghold Quest")
     c.setFont(FONT_NAME, 14)
     c.drawCentredString(PAGE_WIDTH / 2, PAGE_HEIGHT / 2, "A Zoseco Challenge to Defend Innocent Life")
     c.setFont(FONT_NAME, 10)
-    c.drawCentredString(PAGE_WIDTH / 2, PAGE_HEIGHT / 2 - 20, "Version 0.2")
-    draw_footer(c)
+    c.drawCentredString(PAGE_WIDTH / 2, PAGE_HEIGHT / 2 - 20, "Version 0.22")
+    draw_footer(c, include_qr=True)
     c.showPage()
 
-    # Page 2: Instructions
+    # Page 2: Instructions with QR codes
     c.setFont(FONT_NAME, 18)
     c.setFillColor(royal_turquoise)
     c.drawString(1 * inch, PAGE_HEIGHT - 1 * inch, "Stronghold Quest: How to Play")
@@ -203,40 +215,40 @@ def create_pdf():
             c.drawString(1 * inch, y_pos, wrapped_line)
             y_pos -= 15
         y_pos -= 5
-    draw_footer(c)
+    draw_footer(c, include_qr=True)
     c.showPage()
 
-    # Page 3: Pillar Cards (raised text)
+    # Page 3: Pillar Cards without QR codes
     for i, (title, text) in enumerate(pillar_cards):
         x = (i % 2) * (CARD_WIDTH + 20) + 1.75 * inch
         y = PAGE_HEIGHT - ((i // 2) + 1) * (CARD_HEIGHT + 20) - 1 * inch
-        draw_card(c, x, y, title, text, raise_text=True)  # Raise text slightly
-    draw_footer(c)
+        draw_card(c, x, y, title, text, raise_text=True)
+    draw_footer(c)  # No QR codes
     c.showPage()
 
-    # Pages 4-8: Challenge Cards (original positioning)
+    # Pages 4-8: Challenge Cards without QR codes
     for i, (pillar, text) in enumerate(challenge_cards):
         if i % 4 == 0 and i > 0:
             c.showPage()
-            draw_footer(c)
+            draw_footer(c)  # No QR codes
         x = (i % 2) * (CARD_WIDTH + 20) + 1.75 * inch
         y = PAGE_HEIGHT - ((i % 4 // 2) + 1) * (CARD_HEIGHT + 20) - 1 * inch
-        draw_card(c, x, y, f"{pillar} Challenge", text, raise_text=False)  # Original positioning
+        draw_card(c, x, y, f"{pillar} Challenge", text, raise_text=False)
     c.showPage()
-    draw_footer(c)
+    draw_footer(c)  # No QR codes
 
-    # Pages 9-11: Threat Cards (raised text)
+    # Pages 9-11: Threat Cards without QR codes
     for i, (type, text) in enumerate(threat_cards):
         if i % 4 == 0 and i > 0:
             c.showPage()
-            draw_footer(c)
+            draw_footer(c)  # No QR codes
         x = (i % 2) * (CARD_WIDTH + 20) + 1.75 * inch
         y = PAGE_HEIGHT - ((i % 4 // 2) + 1) * (CARD_HEIGHT + 20) - 1 * inch
-        draw_card(c, x, y, type, text, raise_text=True)  # Raise text slightly
+        draw_card(c, x, y, type, text, raise_text=True)
     c.showPage()
-    draw_footer(c)
+    draw_footer(c)  # No QR codes
 
-    # Page 12: Score Tracker, Badge, Contribution, Join Us
+    # Page 12: Score Tracker and Badge with QR codes
     c.setFont(FONT_NAME, 14)
     c.setFillColor(royal_turquoise)
     c.drawCentredString(PAGE_WIDTH / 2, PAGE_HEIGHT - 1 * inch, "Score Tracker")
@@ -267,7 +279,7 @@ def create_pdf():
     c.drawCentredString(PAGE_WIDTH / 2, badge_y + badge_height - 0.7 * inch, "Awarded to: ________________")
     c.drawCentredString(PAGE_WIDTH / 2, badge_y + badge_height - 1.0 * inch, "Victory Earned!")
 
-    draw_footer(c)
+    draw_footer(c, include_qr=True)
     c.showPage()
 
     c.save()
