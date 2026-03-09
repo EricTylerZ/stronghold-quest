@@ -1,0 +1,10 @@
+{
+  "name": "Stronghold Quest",
+  "short_name": "Stronghold",
+  "description": "A Pro-Life Card Game by Zoseco",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f5f5f0",
+  "theme_color": "#00918b",
+  "icons": []
+}

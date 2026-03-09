@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#00918b">
+  <title>Stronghold Quest</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Title Screen -->
+  <div id="title-screen" class="screen active">
+    <div class="title-content">
+      <h1>Stronghold Quest</h1>
+      <p class="subtitle">A Pro-Life Card Game by Zoseco</p>
+      <p class="version">Version 1.0</p>
+
+      <h3 class="choose-text">Choose Your Pillar</h3>
+      <div id="pillar-grid" class="pillar-grid"></div>
+
+      <button id="rules-btn" class="secondary-btn">How to Play</button>
+
+      <!-- Sentinel Ops Login -->
+      <div class="sentinel-login">
+        <div id="sentinel-status" class="sentinel-offline">Playing offline</div>
+        <div id="sentinel-login-form">
+          <input type="text" id="sentinel-role-id" placeholder="Role ID" autocomplete="off">
+          <button id="sentinel-login-btn" class="sentinel-btn">Login</button>
+        </div>
+        <div id="sentinel-register-form" class="hidden">
+          <input type="text" id="sentinel-reg-name" placeholder="Your name" autocomplete="off">
+          <button id="sentinel-register-btn" class="sentinel-btn">Register</button>
+        </div>
+        <div class="sentinel-toggle">
+          <a href="#" id="sentinel-toggle-register">New? Register for EZ Merit Points</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer">zoseco.com</div>
+  </div>
+
+  <!-- Rules Screen -->
+  <div id="rules-screen" class="screen">
+    <div class="screen-header">
+      <button class="back-btn" data-target="title-screen">&larr;</button>
+      <h2>How to Play</h2>
+    </div>
+    <div class="rules-content">
+      <section>
+        <h3>Overview</h3>
+        <p>Stronghold Quest is a card game where you defend innocent life by drawing Challenge Cards, answering questions, and overcoming Threats. Collect 7 cards to win, or 12 for a greater victory!</p>
+      </section>
+      <section>
+        <h3>Setup</h3>
+        <p>Choose a Pillar (Purity, Protection, Peace, or Productivity) to guide your mission. Each pillar represents a different aspect of defending life.</p>
+      </section>
+      <section>
+        <h3>Each Turn</h3>
+        <ul>
+          <li><strong>Draw a Challenge Card</strong> &ndash; Read the challenge, then answer a teaching question to collect it.</li>
+          <li><strong>Every 3rd turn: Threat!</strong> &ndash; A Threat Card appears. Answer correctly to defeat it, or lose a collected card.</li>
+          <li><strong>Earn EZ Merit Points</strong> &ndash; Each card collected or threat defeated earns merit.</li>
+        </ul>
+      </section>
+      <section>
+        <h3>Victory</h3>
+        <ul>
+          <li><strong>7 cards</strong> &ndash; Standard victory: claim your Defender of Life badge!</li>
+          <li><strong>12 cards</strong> &ndash; Greater victory: you are a true champion of life!</li>
+        </ul>
+      </section>
+      <section>
+        <h3>Prayer</h3>
+        <p>Tap the prayer button at any time to pray for life. Prayers follow the Liturgy of the Hours, matching the time of day. Each prayer earns 1 EZ Merit Point.</p>
+      </section>
+      <section>
+        <h3>EZ Merit Points</h3>
+        <p>Log in with your Sentinel Ops account to earn EZ Merit Points. Points earned in Stronghold Quest count toward your total across all Zoseco games (Stellar Virtue, StagQuest, and more).</p>
+      </section>
+    </div>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="game-screen" class="screen">
+    <div class="game-header">
+      <button class="back-btn" data-target="title-screen">&larr;</button>
+      <div id="game-status" class="game-status"></div>
+      <button id="prayer-btn" class="prayer-btn" title="Pray">&#x271D;</button>
+    </div>
+    <div id="pillar-counts" class="pillar-counts"></div>
+    <div id="card-area" class="card-area"></div>
+  </div>
+
+  <!-- Game Over Screen -->
+  <div id="gameover-screen" class="screen">
+    <div id="gameover-content" class="gameover-content"></div>
+  </div>
+
+  <!-- Prayer Modal -->
+  <div id="prayer-modal" class="modal">
+    <div class="modal-content">
+      <div id="prayer-content"></div>
+    </div>
+  </div>
+
+  <script src="teaching-module.js"></script>
+  <script src="sentinel-api.js"></script>
+  <script src="stronghold-data.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
