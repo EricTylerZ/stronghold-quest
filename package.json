@@ -1,0 +1,28 @@
+{
+  "name": "stronghold-quest",
+  "version": "1.0.0",
+  "description": "A pro-life card game from Zoseco to defend life through Purity, Protection, Peace, and Productivity.",
+  "main": "game.js",
+  "scripts": {
+    "cap:init-ios": "npx cap add ios",
+    "cap:init-android": "npx cap add android",
+    "cap:sync": "npx cap sync",
+    "cap:open-ios": "npx cap open ios",
+    "cap:open-android": "npx cap open android",
+    "cap:run-ios": "npx cap run ios",
+    "cap:run-android": "npx cap run android"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://local_proxy@127.0.0.1:40161/git/EricTylerZ/stronghold-quest"
+  },
+  "keywords": [],
+  "author": "Zoseco",
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor/android": "^8.2.0",
+    "@capacitor/cli": "^8.2.0",
+    "@capacitor/core": "^8.2.0",
+    "@capacitor/ios": "^8.2.0"
+  }
+}
